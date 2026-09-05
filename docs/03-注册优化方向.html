@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>时程簿 · 注册功能优化方向</title>
+<style>
+  :root { --accent:#2E7D6B; --bg:#f7f6f3; --card:#fff; --text:#1a1a1a; --muted:#6e6e6e; --border:#e3e1dc; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif; background:var(--bg); color:var(--text); line-height:1.75; font-size:16px; }
+  .wrap { max-width:860px; margin:0 auto; padding:32px 20px 80px; }
+  h1 { font-size:30px; margin-bottom:8px; }
+  h2 { font-size:23px; margin:36px 0 14px; padding-left:12px; border-left:4px solid var(--accent); }
+  p { margin:10px 0; }
+  .lead { color:var(--muted); font-size:17px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px 22px; margin:14px 0; }
+  table { border-collapse:collapse; width:100%; margin:12px 0; background:var(--card); }
+  th,td { border:1px solid var(--border); padding:9px 12px; text-align:left; vertical-align:top; font-size:15px; }
+  th { background:#f0eee9; font-weight:600; }
+  code { background:#efede8; padding:2px 7px; border-radius:6px; font-size:14px; font-family:Consolas,Monaco,monospace; color:#b34700; }
+  .tip { background:#e8f5ee; border-left:4px solid var(--accent); padding:12px 16px; border-radius:8px; margin:12px 0; }
+  .warn { background:#fff4e6; border-left:4px solid #e8590c; padding:12px 16px; border-radius:8px; margin:12px 0; }
+  ul { margin:10px 0 10px 24px; }
+  li { margin:6px 0; }
+  .best { border:2px solid var(--accent); }
+  .badge { display:inline-block; background:var(--accent); color:#fff; border-radius:999px; padding:2px 10px; font-size:12px; margin-left:6px; }
+  .badge.gray { background:#9a9a9a; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>时程簿 · 注册功能优化方向</h1>
+<p class="lead">现状是「不能自助注册、只能管理员建账号」。这篇讲清楚为什么会这样，以及以后想支持自助注册有哪些方向、各要多少成本。</p>
+
+<h2>一、现状：为什么现在不能自助注册</h2>
+<div class="card">
+<p>根本原因是用了 CloudBase <b>免费体验版</b>，它有两个限制：</p>
+<ul>
+  <li><b>短信验证码、邮箱验证码开不了</b>（控制台里是灰色，因为免费版不提供发短信/发邮件的服务）。</li>
+  <li><b>「用户名密码」登录方式只支持登录、不支持注册</b>（实测注册接口直接返回 501「不支持」）。</li>
+</ul>
+<p>所以现在只能：<b>管理员（你）在控制台「用户管理」里手动创建账号</b>，朋友拿你给的「用户名 + 密码」登录。</p>
+</div>
+
+<h2>二、优化方向对比（4 条路）</h2>
+
+<table>
+  <tr><th>方向</th><th>怎么做</th><th>成本</th><th>难度</th><th>推荐度</th></tr>
+  <tr>
+    <td><b>A. 升级套餐开邮箱</b></td>
+    <td>CloudBase 升级到「个人版」（19.9元/月）→ 开启「邮箱验证码」→ 用户用邮箱+验证码自助注册</td>
+    <td>每月 19.9 元</td>
+    <td>低（改少量代码）</td>
+    <td>⭐⭐⭐⭐⭐ 最推荐</td>
+  </tr>
+  <tr>
+    <td><b>B. 邀请码 + 邮箱自助注册</b></td>
+    <td>在 A 的基础上，注册时校验邀请码，控制谁能进（原计划的方案）</td>
+    <td>同 A</td>
+    <td>低</td>
+    <td>⭐⭐⭐⭐ 配合 A 用</td>
+  </tr>
+  <tr>
+    <td><b>C. 微信登录</b></td>
+    <td>CloudBase 支持微信登录，但需要「微信开放平台」账号 + AppID（要企业/个人开发者资质、审核）</td>
+    <td>要资质+审核</td>
+    <td>中</td>
+    <td>⭐⭐ 小范围用不划算</td>
+  </tr>
+  <tr>
+    <td><b>D. 自建后端账号系统</b></td>
+    <td>用 CloudBase 云函数 + 云数据库自己写「注册/登录/密码加密」，完全可控</td>
+    <td>云函数免费额度</td>
+    <td>高（要写后端逻辑）</td>
+    <td>⭐⭐ 学习价值大，工程量大</td>
+  </tr>
+</table>
+
+<h2>三、各方向的详细说明</h2>
+
+<h3>方向 A：升级套餐开邮箱（最省事）<span class="badge">推荐</span></h3>
+<p>把 CloudBase 套餐从「免费体验版」升级到「个人版」（19.9 元/月），就能开启「邮箱验证码」。然后：</p>
+<ul>
+  <li>注册流程变成：用户填邮箱 → 收到验证码 → 输入验证码 → 自动注册并登录。</li>
+  <li>代码改动很小：把现在的「管理员建账号」换成邮箱验证码登录即可（SDK 已有 <code>getVerification</code> + <code>signInWithEmail</code> 方法）。</li>
+</ul>
+
+<h3>方向 B：加邀请码（配合 A）</h3>
+<p>这是当初最想要的方案：<b>自助注册，但要输入邀请码</b>，只有拿到你邀请码的朋友才能注册，实现「小范围私密使用」。实现：注册前读一个公开的「config」集合里的邀请码做校验即可（代码里已经有这个接口的雏形）。</p>
+
+<h3>方向 C：微信登录</h3>
+<p>适合想「一键微信登录」的场景，但个人开发者申请微信开放平台 AppID 有门槛（要审核、可能要企业资质），小范围朋友使用不划算。</p>
+
+<h3>方向 D：自建后端账号系统</h3>
+<p>如果你以后想练后端，这是最好的学习方向：用 CloudBase 云函数 + 云数据库自己写一套「注册、登录、密码加盐哈希、Token 签发」。完全可控、不依赖平台认证，但工程量大、要考虑安全问题（密码不能明文存）。</p>
+
+<h2>四、结论</h2>
+<div class="card best">
+<p><b>建议路线</b>：先维持现状（管理员建账号，免费）；等真的需要「朋友自助注册」了，就 <b>升级个人版（19.9/月）→ 开邮箱验证码 → 加邀请码校验</b>，一步到位实现当初设计的「邀请码 + 邮箱自助注册」。</p>
+</div>
+<p>如果你只是想「给自己和几个朋友用」，现在这个「管理员建账号」的方式其实已经够用，而且免费。</p>
+
+</div>
+</body>
+</html>

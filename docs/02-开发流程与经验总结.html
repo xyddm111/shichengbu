@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>时程簿 · 开发流程与经验总结</title>
+<style>
+  :root { --accent:#2E7D6B; --bg:#f7f6f3; --card:#fff; --text:#1a1a1a; --muted:#6e6e6e; --border:#e3e1dc; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif; background:var(--bg); color:var(--text); line-height:1.75; font-size:16px; }
+  .wrap { max-width:860px; margin:0 auto; padding:32px 20px 80px; }
+  h1 { font-size:30px; margin-bottom:8px; }
+  h2 { font-size:23px; margin:36px 0 14px; padding-left:12px; border-left:4px solid var(--accent); }
+  h3 { font-size:18px; margin:20px 0 8px; color:var(--accent); }
+  p { margin:10px 0; }
+  .lead { color:var(--muted); font-size:17px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px 22px; margin:14px 0; }
+  table { border-collapse:collapse; width:100%; margin:12px 0; background:var(--card); }
+  th,td { border:1px solid var(--border); padding:9px 12px; text-align:left; vertical-align:top; font-size:15px; }
+  th { background:#f0eee9; font-weight:600; }
+  code { background:#efede8; padding:2px 7px; border-radius:6px; font-size:14px; font-family:Consolas,Monaco,monospace; color:#b34700; }
+  .tip { background:#e8f5ee; border-left:4px solid var(--accent); padding:12px 16px; border-radius:8px; margin:12px 0; }
+  .warn { background:#fff4e6; border-left:4px solid #e8590c; padding:12px 16px; border-radius:8px; margin:12px 0; }
+  .pit { background:#fdecec; border-left:4px solid #e03131; padding:12px 16px; border-radius:8px; margin:12px 0; }
+  ul { margin:10px 0 10px 24px; }
+  li { margin:6px 0; }
+  .step { display:flex; gap:12px; margin:12px 0; align-items:flex-start; }
+  .step .num { flex:none; width:32px; height:32px; background:var(--accent); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; }
+  .step .body { flex:1; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 18px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>时程簿 · 开发流程与经验总结</h1>
+<p class="lead">从「一个想法」到「上线的软件」，完整记录了开发流程、每一步做了什么、以及踩过的坑和学到的经验。</p>
+
+<h2>一、完整开发流程（7 个阶段）</h2>
+
+<div class="step"><div class="num">1</div><div class="body">
+  <b>需求梳理</b>：先不写代码，和用户反复讨论「到底要做什么」。<br>
+  确定了：核心是「人的一天每一刻」——课表(单双周)、睡眠、安排、计划、空闲自动算；视图有「现在/今天/周/月」；还要登录、多用户、部署上线。
+  <div class="tip">经验：<b>需求没聊清楚就写代码，等于返工</b>。这一步花了最多时间，但最值。</div>
+</div></div>
+
+<div class="step"><div class="num">2</div><div class="body">
+  <b>设计与选型</b>：确定「网页 PWA（而非原生 App）」+「极简工具感设计」+「先本地、后云端」。<br>
+  设计上明确：不用渐变色、图标用 SVG、时程表放首页打开即见、底部五 Tab 导航。
+</div></div>
+
+<div class="step"><div class="num">3</div><div class="body">
+  <b>搭骨架</b>：创建 Vite + React + TypeScript 项目，写设计变量、基础组件、数据层。<br>
+  顺序：<code>设计变量 → 基础组件 → 数据层 → 视图 → 表单</code>。
+</div></div>
+
+<div class="step"><div class="num">4</div><div class="body">
+  <b>开发核心功能</b>：今天/周/月视图、时间轴、课表录入(单双周)、计划推荐、统计等。<br>
+  每做一个功能就跑 <code>npm run typecheck</code>（类型检查）+ <code>npm run build</code>（构建）验证。
+</div></div>
+
+<div class="step"><div class="num">5</div><div class="body">
+  <b>自我审查 + 迭代</b>：类型检查 0 错误、构建成功、冒烟测试；再根据用户反馈一轮轮打磨界面（导航、时间轴、颜色、图标…）。
+  <div class="tip">经验：<b>把东西先跑起来给用户看，再根据反馈改</b>，比闭门造车高效得多。</div>
+</div></div>
+
+<div class="step"><div class="num">6</div><div class="body">
+  <b>接云端 + 登录</b>：注册腾讯云 CloudBase，接入登录认证、云数据库（按账号隔离）、数据上云。
+</div></div>
+
+<div class="step"><div class="num">7</div><div class="body">
+  <b>部署上线</b>：打包 <code>dist/</code>，用 CLI 上传到 CloudBase 静态托管，拿到正式 https 网址，手机可「添加到主屏幕」。
+</div></div>
+
+<h2>二、每一步的关键经验</h2>
+<table>
+  <tr><th>阶段</th><th>关键经验</th></tr>
+  <tr><td>需求</td><td>多问、多确认；把「要做什么」和「不做什么」都写清楚</td></tr>
+  <tr><td>设计</td><td>先定「设计变量/配色/组件」，再动手，避免风格打架</td></tr>
+  <tr><td>数据层</td><td>定义好数据模型（types），本地和云端接口保持一致，方便切换</td></tr>
+  <tr><td>开发</td><td>每个小功能都做类型检查 + 构建，别攒到最后</td></tr>
+  <tr><td>测试</td><td>真机测试（手机浏览器），因为手机和电脑表现不同</td></tr>
+  <tr><td>部署</td><td>上线后 CDN 有缓存，改版要强刷</td></tr>
+</table>
+
+<h2>三、踩过的坑（重点，面试也可能问「遇到过什么困难」）</h2>
+
+<div class="pit">
+  <b>坑 1：npm 安装依赖被沙箱拦</b> —— 全局缓存目录不在可写范围，报 EPERM。<br>
+  <b>解决</b>：把缓存重定向到项目内 <code>--cache .npm-cache</code>，并用 <code>--ignore-scripts</code> 跳过需要派生进程的脚本。
+</div>
+
+<div class="pit">
+  <b>坑 2：构建时 esbuild 派生子进程报 EPERM</b> —— 沙箱禁止「管道捕获子进程输出」。<br>
+  <b>解决</b>：在更高权限模式下运行构建命令。
+</div>
+
+<div class="pit">
+  <b>坑 3：CloudBase 大改版</b> —— 一开始按老文档的「按量计费免费额度」走，结果发现现在是「套餐制」（免费体验版/个人版），数据库也分「PostgreSQL(默认)」和「云数据库(文档型)」。<br>
+  <b>解决</b>：及时查官方最新文档，确认本项目用「云数据库」。
+</div>
+
+<div class="pit">
+  <b>坑 4：免费体验版不能自助注册</b> —— 短信/邮箱验证码是灰色开不了；「用户名密码」又只支持登录不支持注册（注册接口直接返回 501）。<br>
+  <b>解决</b>：改成「管理员创建账号 + 用户名密码登录」。
+</div>
+
+<div class="pit">
+  <b>坑 5：SDK v1/v2 接口混乱</b> —— 新版 SDK 的 <code>signUp</code> 要求邮箱/手机，而用户名密码登录要用旧版兼容方法 <code>signInWithUsernameAndPassword</code>。<br>
+  <b>解决</b>：读 SDK 的类型定义文件（.d.ts）确认到底有哪些方法，而不是猜。
+</div>
+
+<div class="pit">
+  <b>坑 6：云数据库集合不会自动创建</b> —— 直接写入报错/卡住。<br>
+  <b>解决</b>：用 CLI 的 INSERT 触发创建集合（已建好 5 个：semester/courses/sleep/events/plans）。
+</div>
+
+<div class="pit">
+  <b>坑 7：命令行传 JSON 被 PowerShell 转义搞坏</b> —— 嵌套引号被吃掉。<br>
+  <b>解决</b>：改用 Node 脚本 <code>JSON.stringify</code> 构造参数再调用 CLI，绕开 shell 转义。
+</div>
+
+<div class="pit">
+  <b>坑 8：PWA/CDN 缓存导致「刷新没反应」</b> —— 部署新版本后，浏览器/CDN 还缓存着旧版。<br>
+  <b>解决</b>：提醒用户「强刷」或等几分钟 CDN 刷新。
+</div>
+
+<h2>四、方法论总结（几条通用心法）</h2>
+<ul>
+  <li><b>先设计后编码</b>：需求、数据模型、配色、组件都想清楚再动手，能省大量返工。</li>
+  <li><b>小步快跑 + 频繁验证</b>：每做一点就类型检查/构建/给用户看，别攒大问题。</li>
+  <li><b>接口抽象</b>：本地/云端数据层做成同一套接口，上层无感切换，这是本项目最值得说的设计。</li>
+  <li><b>读源码/类型定义</b>：SDK 文档过时或不清晰时，直接读它的 .d.ts 类型定义最靠谱。</li>
+  <li><b>遇到外部平台改版，先查官方最新文档</b>，别死磕旧教程。</li>
+  <li><b>把过程和坑记录下来</b>（就像这份文档），下次能无缝继续。</li>
+</ul>
+
+<div class="card">
+  <p><b>如果面试问「这个项目你学到了什么」</b>，可以这样答：</p>
+  <p>「我完整走了一遍从需求、设计、开发到部署上线的流程，学会了两件最重要的事：一是用 TypeScript 和接口抽象让数据层能本地/云端双模式无缝切换；二是遇到第三方平台（CloudBase）改版、沙箱限制等意外时，学会查官方文档、读 SDK 类型定义来定位问题，而不是瞎试。」</p>
+</div>
+
+</div>
+</body>
+</html>

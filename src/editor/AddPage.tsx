@@ -23,6 +23,23 @@ function parseDates(s: string): string[] {
     .filter((x) => /^\d{4}-\d{2}-\d{2}$/.test(x))
 }
 
+// 解析周次：支持单个(如 3)和范围(如 2-15、2-4,8-16)
+function parseWeeks(s: string): number[] {
+  const out = new Set<number>()
+  for (const part of s.split(/[,，\s]+/)) {
+    const m = part.match(/^(\d+)\s*[-~]\s*(\d+)$/)
+    if (m) {
+      const a = parseInt(m[1], 10)
+      const b = parseInt(m[2], 10)
+      for (let i = Math.min(a, b); i <= Math.max(a, b); i++) out.add(i)
+    } else {
+      const n = parseInt(part, 10)
+      if (Number.isInteger(n) && n > 0) out.add(n)
+    }
+  }
+  return [...out].sort((a, b) => a - b)
+}
+
 interface Props {
   store: AppStore
   open: boolean
@@ -258,7 +275,7 @@ function CourseForm({ store, onClose, initial }: { store: AppStore; onClose: () 
   const save = async () => {
     if (!name.trim()) return alert('请填写课程名')
     if (toMinutes(endTime) <= toMinutes(startTime)) return alert('结束时间需晚于开始时间')
-    const weeks = customWeeks.split(/[,，\s]+/).map(Number).filter((n) => Number.isInteger(n) && n > 0)
+    const weeks = parseWeeks(customWeeks)
     if (weekRule === 'custom' && weeks.length === 0) return alert('指定周次请填写周数，例如 1,3,5')
     await store.saveCourse({
       id: initial?.id,
@@ -316,7 +333,7 @@ function CourseForm({ store, onClose, initial }: { store: AppStore; onClose: () 
         />
       </label>
       {weekRule === 'custom' && (
-        <Input label="指定周次" value={customWeeks} onChange={(e) => setCustomWeeks(e.target.value)} placeholder="例如 1,3,5,7" />
+        <Input label="指定周次" value={customWeeks} onChange={(e) => setCustomWeeks(e.target.value)} placeholder="支持范围，如 2-15 或 2-4,8-16" />
       )}
 
       <div className="extra-head">
